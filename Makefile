@@ -1,13 +1,16 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c99
 LFLAGS = 
-TARGET = lzw
 SRC = $(wildcard *.c)
 OBJ = $(SRC:%.c=%.o)
+TARGETS = $(SRC:%.c=%.exe)
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(OBJ)
+#$(TARGETS): $(OBJ)
+#	echo ---------- Linking to executable $@
+#	$(CC) $(LFLAGS) $^ -o $@
+%.exe: %.o
 	echo ---------- Linking to executable $@
 	$(CC) $(LFLAGS) $^ -o $@
 
@@ -16,5 +19,5 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) $^ -c -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS)
 	rm -f $(OBJ)
