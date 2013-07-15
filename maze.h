@@ -45,4 +45,10 @@ void maze_print(const Maze* maze, bool print_header);
 
 void maze_print_skeletton(const Maze* maze, bool print_header);
 
+bool queue_is_empty(const Queue* queue);
+
+void queue_pop(size_t* i, size_t* j, Direction* dir, Queue* queue);
+
+void queue_rewind(Queue* queue);
+
 #endif

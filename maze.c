@@ -4,7 +4,7 @@
 
 #define QUEUE_INIT  ( (Queue){NULL,NULL,NULL} )
 
-static bool queue_is_empty(const Queue* queue)
+bool queue_is_empty(const Queue* queue)
 {
 	return !queue->cur;
 }
@@ -26,7 +26,7 @@ static void queue_append(size_t i, size_t j, Direction dir, Queue* queue)
 	queue->tail = node;
 }
 
-static void queue_pop(size_t* i, size_t* j, Direction* dir, Queue* queue)
+void queue_pop(size_t* i, size_t* j, Direction* dir, Queue* queue)
 {
 	if(i)
 		*i = queue->cur->i;
@@ -35,6 +35,11 @@ static void queue_pop(size_t* i, size_t* j, Direction* dir, Queue* queue)
 	if(dir)
 		*dir = queue->cur->dir;
 	queue->cur = queue->cur->next;
+}
+
+void queue_rewind(Queue* queue)
+{
+	queue->cur = queue->head;
 }
 
 static void queue_delete(Queue* queue)

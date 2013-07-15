@@ -9,27 +9,6 @@
 #define  DEFAULT_WIDTH   16
 #define  DEFAULT_HEIGHT  16
 
-/* LZW encoder test program. */
-/*int main(void)
-{
-	Byte in_bytes[256];
-	Byte out_bytes[256];
-	int c;
-	size_t len, compressed_len;
-	
-	for(len = 0;  (c = getchar()) != EOF;  len++)
-		in_bytes[len] = c, fprintf(stderr, "%02X ", in_bytes[len]);
-	
-	compressed_len = lzw_encode(BYTE_SZ, len, in_bytes, out_bytes);
-	fprintf(stderr, "\nlen %u / compressed %u\n", len, compressed_len);
-	
-	for(size_t i = 0;  i < compressed_len;  i++)
-		putchar(out_bytes[i]), fprintf(stderr, "%02X ", out_bytes[i]);
-	putc('\n', stderr);
-	
-	return EXIT_SUCCESS;
-}*/
-
 bool uint_of_str(const char* s, size_t* x)
 {
 	char* p;
@@ -37,10 +16,11 @@ bool uint_of_str(const char* s, size_t* x)
 	return p != s;
 }
 
-/* Maze generator test program. */
 int main(int ac, char** av)
 {
-	/*Maze* maze;
+	/* Maze generation. */
+	
+	Maze* maze;
 	size_t w, h;
 	
 	srand(time(NULL));
@@ -54,48 +34,52 @@ int main(int ac, char** av)
 	}
 	
 	maze = maze_generate(w, h);
+	
 	maze_print(maze, false);
 	maze_print_skeletton(maze, false);
 	
-	maze_delete(maze);
-	return EXIT_SUCCESS;*/
+	
+	/* GIF writing. */
 	
 	GIF* gif;
 	GIFColor* palette;
 	GIFFrame* frame;
 	
-	gif = GIF_create(4,4);
+	gif = GIF_create(8*w+1, 8*h+1);
 	palette = GIF_set_palette(gif, 1);
 	palette[0] = (GIFColor){0x22, 0x22, 0x77};
 	palette[1] = (GIFColor){0x22, 0x88, 0x22};
 	palette[2] = (GIFColor){0x99, 0x33, 0x33};
 	palette[3] = (GIFColor){0x44, 0xAA, 0xAA};
 	
-	frame = GIFFrame_create(0, 0, 3, 3);
-	frame->disposal = DISPOSE_NOT;
-	frame->delay = 100;
-	frame->pixels[0] = 0;
-	frame->pixels[1] = 1;
-	frame->pixels[2] = 3;
-	frame->pixels[3] = 3;
-	frame->pixels[4] = 0;
-	frame->pixels[5] = 1;
-	frame->pixels[6] = 1;
-	frame->pixels[7] = 3;
-	frame->pixels[8] = 0;
-	GIF_add_frame(gif, frame);
+	size_t i, j;
+	Direction dir;
+	queue_rewind(&maze->moves);
 	
-	frame = GIFFrame_create(2, 2, 2, 2);
-	frame->disposal = DISPOSE_BG;
-	frame->user_input = true;
-	frame->delay = 100;
-	for(size_t i = 0;  i < frame->w*frame->h;  i++)
-		frame->pixels[i] = 2;
-	GIF_add_frame(gif, frame);
+	while(!queue_is_empty(&maze->moves)) {
+		queue_pop(&i, &j, &dir, &maze->moves);
+		if(dir%2)
+			frame = GIFFrame_create(0, 0, 7, 8);
+		else
+			frame = GIFFrame_create(0, 0, 8, 7);
+		frame->disposal = DISPOSE_NOT;
+		frame->delay = 0;
+		for(size_t i = 0;  i < frame->w*frame->h;  i++)
+			frame->pixels[i] = 2;
+		frame->x = 8*j+1;
+		frame->y = 8*i+1;
+		if(dir == RIGHT)
+			frame->x--;
+		else if(dir == BOTTOM)
+			frame->y--;
+		
+		GIF_add_frame(gif, frame);
+	}
 	
 	if(!GIF_write(gif, "out.gif"))
 		perror("out.gif");
 	
 	GIF_delete(gif);
+	maze_delete(maze);
 	return EXIT_SUCCESS;
 }
