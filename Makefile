@@ -1,11 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c99
+CFLAGS = -Wall -Wextra -pedantic -std=c99 -g
 LFLAGS = 
 SRC = $(wildcard *.c)
 OBJ = $(SRC:%.c=%.o)
-TARGET = main
-
-all: $(TARGET)
+TARGET = rmaze
 
 $(TARGET): $(OBJ)
 	echo ---------- Linking to executable $@
@@ -18,3 +16,5 @@ $(TARGET): $(OBJ)
 clean:
 	rm -f $(TARGETS)
 	rm -f $(OBJ)
+
+all: clean $(TARGET)

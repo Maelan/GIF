@@ -3,11 +3,7 @@
 
 #include <stddef.h>
 #include <limits.h>
-
-typedef unsigned char Byte;
-#define  BYTE_MAX  UCHAR_MAX
-#define  BYTE_SZ   CHAR_BIT
-
+#include "typedefs.h"
 
 /* Compresses the ‘len’-bytes data, each byte storing a source value, according
  * to the Variable-Width LZW encoding. Packs the resulting codes into the bytes
