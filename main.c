@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include "typedefs.h"
-#include "lzw_encoder.h"
+#include "gif.h"
 #include "maze.h"
 
 #define  DEFAULT_WIDTH   16
@@ -40,7 +40,7 @@ bool uint_of_str(const char* s, size_t* x)
 /* Maze generator test program. */
 int main(int ac, char** av)
 {
-	Maze* maze;
+	/*Maze* maze;
 	size_t w, h;
 	
 	srand(time(NULL));
@@ -58,5 +58,44 @@ int main(int ac, char** av)
 	maze_print_skeletton(maze, false);
 	
 	maze_delete(maze);
+	return EXIT_SUCCESS;*/
+	
+	GIF* gif;
+	GIFColor* palette;
+	GIFFrame* frame;
+	
+	gif = GIF_create(4,4);
+	palette = GIF_set_palette(gif, 1);
+	palette[0] = (GIFColor){0x22, 0x22, 0x77};
+	palette[1] = (GIFColor){0x22, 0x88, 0x22};
+	palette[2] = (GIFColor){0x99, 0x33, 0x33};
+	palette[3] = (GIFColor){0x44, 0xAA, 0xAA};
+	
+	frame = GIFFrame_create(0, 0, 3, 3);
+	frame->disposal = DISPOSE_NOT;
+	frame->delay = 100;
+	frame->pixels[0] = 0;
+	frame->pixels[1] = 1;
+	frame->pixels[2] = 3;
+	frame->pixels[3] = 3;
+	frame->pixels[4] = 0;
+	frame->pixels[5] = 1;
+	frame->pixels[6] = 1;
+	frame->pixels[7] = 3;
+	frame->pixels[8] = 0;
+	GIF_add_frame(gif, frame);
+	
+	frame = GIFFrame_create(2, 2, 2, 2);
+	frame->disposal = DISPOSE_BG;
+	frame->user_input = true;
+	frame->delay = 100;
+	for(size_t i = 0;  i < frame->w*frame->h;  i++)
+		frame->pixels[i] = 2;
+	GIF_add_frame(gif, frame);
+	
+	if(!GIF_write(gif, "out.gif"))
+		perror("out.gif");
+	
+	GIF_delete(gif);
 	return EXIT_SUCCESS;
 }

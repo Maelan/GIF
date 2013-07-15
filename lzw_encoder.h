@@ -1,8 +1,6 @@
 #ifndef INCLUDED_LZW_ENCODER
 #define INCLUDED_LZW_ENCODER
 
-#include <stddef.h>
-#include <limits.h>
 #include "typedefs.h"
 
 /* Compresses the ‘len’-bytes data, each byte storing a source value, according
