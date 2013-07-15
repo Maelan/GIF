@@ -110,7 +110,7 @@ size_t lzw_encode(size_t initial_code_size, size_t len, const Byte* data, Byte* 
 	size_t out_off;
 	Byte b;
 	
-	Dict_init(&dict, BYTE_MAX+1, initial_code_size);
+	Dict_init(&dict, 1<<initial_code_size, initial_code_size);
 	de = dict.contents;
 	i = 0;
 	out_off = 0;
@@ -123,8 +123,8 @@ size_t lzw_encode(size_t initial_code_size, size_t len, const Byte* data, Byte* 
 			i++;
 		}
 		else {
-			Dict_addEntry(&dict, de, b);
 			writeCode(de->code, dict.code_size, &out_off, out_bytes);
+			Dict_addEntry(&dict, de, b);
 			de = dict.contents;
 		}
 	}

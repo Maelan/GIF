@@ -219,9 +219,9 @@ bool GIF_write(const GIF* gif, const char* filename)
 			}
 		}
 		/* “Image Data”. */
-		Byte px_size = /*(frame->local_palette) ?
+		Byte px_size = (frame->local_palette) ?
 		  frame->palette_size + 1
-		  : gif->palette_size + 1*/8;
+		  : gif->palette_size + 1;
 		size_t encoded_size;
 		Byte* buf = malloc(2 * gif->w * gif->h);
 		encoded_size = lzw_encode(px_size, frame->w*frame->h, frame->pixels, buf);
