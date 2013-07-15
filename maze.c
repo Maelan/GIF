@@ -2,6 +2,50 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define QUEUE_INIT  ( (Queue){NULL,NULL,NULL} )
+
+static bool queue_is_empty(const Queue* queue)
+{
+	return !queue->cur;
+}
+
+static void queue_append(size_t i, size_t j, Direction dir, Queue* queue)
+{
+	QueueNode* node = malloc(sizeof(*node));
+	node->i = i;
+	node->j = j;
+	node->dir = dir;
+	node->next = NULL;
+	
+	if(queue->tail)
+		queue->tail->next = node;
+	else
+		queue->head = node;
+	if(!queue->cur)
+		queue->cur = node;
+	queue->tail = node;
+}
+
+static void queue_pop(size_t* i, size_t* j, Direction* dir, Queue* queue)
+{
+	if(i)
+		*i = queue->cur->i;
+	if(j)
+		*j = queue->cur->j;
+	if(dir)
+		*dir = queue->cur->dir;
+	queue->cur = queue->cur->next;
+}
+
+static void queue_delete(Queue* queue)
+{
+	QueueNode* tmp;
+	while((tmp = queue->head)) {
+		queue->head = tmp->next;
+		free(tmp);
+	}
+}
+
 static Maze* maze_create(size_t w, size_t h)
 {
 	Maze* maze;
@@ -15,6 +59,8 @@ static Maze* maze_create(size_t w, size_t h)
 	for(size_t i = 0;  i < h;  i++)
 		maze->cells[i] = calloc(w, sizeof(**maze->cells));
 	
+	maze->moves = QUEUE_INIT;
+	
 	return maze;
 }
 
@@ -23,51 +69,8 @@ void maze_delete(Maze* maze)
 	for(size_t i = 0;  i < maze->h;  i++)
 		free(maze->cells[i]);
 	free(maze->cells);
+	queue_delete(&maze->moves);
 	free(maze);
-}
-
-typedef struct {
-	size_t i, j;
-} Position;
-
-typedef struct QueueNode {
-	Position pos;
-	struct QueueNode* next;
-} QueueNode;
-
-typedef struct {
-	QueueNode *head, *tail;
-} Queue;
-
-#define QUEUE_INIT  ( (Queue){NULL,NULL} )
-
-static bool queue_is_empty(const Queue* queue)
-{
-	return !queue->head;
-}
-
-static void queue_append(Position pos, Queue* queue)
-{
-	QueueNode* node = malloc(sizeof(*node));
-	node->pos = pos;
-	node->next = NULL;
-	
-	if(queue->tail)
-		queue->tail->next = node;
-	else
-		queue->head = node;
-	queue->tail = node;
-}
-
-static Position queue_pop(Queue* queue)
-{
-	QueueNode* tmp = queue->head;
-	Position pos = tmp->pos;
-	queue->head = tmp->next;
-	if(!queue->head)
-		queue->tail = NULL;
-	free(tmp);
-	return pos;
 }
 
 static unsigned random(unsigned max)
@@ -124,9 +127,7 @@ static void move_ij(size_t* i, size_t* j, Direction dir)
 	}
 }
 
-static void move_here
-  (Maze* maze, Queue* cells,
-   size_t i, size_t j, Direction dir)
+static void move_here(Maze* maze, size_t i, size_t j, Direction dir)
 {
 	if(i < maze->h && j < maze->w)
 		maze->cells[i][j].ways |= DIR_MASK(dir);
@@ -135,11 +136,10 @@ static void move_here
 	maze->cells[i][j].visited = true;
 	maze->unvisited_count--;
 	
-	queue_append((Position){i,j}, cells);
+	queue_append(i, j, dir, &maze->moves);
 }
 
-static void search_unvisited
-  (Maze* maze, Queue* cells)
+static void search_unvisited(Maze* maze)
 {
 	size_t count;
 	unsigned mask; 
@@ -152,7 +152,7 @@ static void search_unvisited
 				continue;
 			dir = choose_direction(mask);
 			move_ij(&i, &j, dir);
-			move_here(maze, cells, i, j, opposite_direction(dir));
+			move_here(maze, i, j, opposite_direction(dir));
 			return;
 		}
 	}
@@ -161,8 +161,6 @@ static void search_unvisited
 Maze* maze_generate(size_t w, size_t h)
 {
 	Maze* maze;
-	Queue cells;
-	Position pos;
 	Direction dir;
 	size_t i, j;
 	
@@ -172,19 +170,16 @@ Maze* maze_generate(size_t w, size_t h)
 	unsigned random_branching;
 	
 	maze = maze_create(w, h);
-	cells = QUEUE_INIT;
 	
-	move_here(maze, &cells, 0, -1, RIGHT);
-	//move_here(maze, &cells, -1, w-1, BOTTOM);
-	move_here(maze, &cells, h-1, w, LEFT);
-	//move_here(maze, &cells, h, 0, TOP);
+	move_here(maze, 0, -1, RIGHT);
+	//move_here(maze, -1, w-1, BOTTOM);
+	move_here(maze, h-1, w, LEFT);
+	//move_here(maze, h, 0, TOP);
 	
 	while(maze->unvisited_count) {
-		if(queue_is_empty(&cells))
-			search_unvisited(maze, &cells);
-		pos = queue_pop(&cells);
-		i = pos.i;
-		j = pos.j;
+		if(queue_is_empty(&maze->moves))
+			search_unvisited(maze);
+		queue_pop(&i, &j, NULL, &maze->moves);
 		mask = neighbourhood(maze, i, j, false, &count);
 		if(count) {
 			branching = 1;
@@ -197,7 +192,7 @@ Maze* maze_generate(size_t w, size_t h)
 			while(branching--) {
 				dir = choose_direction(mask);
 				mask ^= DIR_MASK(dir);
-				move_here(maze, &cells, i, j, dir);
+				move_here(maze, i, j, dir);
 			}
 		}
 	}

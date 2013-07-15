@@ -15,6 +15,16 @@ typedef enum {
 	BOTTOMm = DIR_MASK(BOTTOM)
 } DirectionMask;
 
+typedef struct QueueNode {
+	size_t i, j;
+	Direction dir;
+	struct QueueNode* next;
+} QueueNode;
+
+typedef struct {
+	QueueNode *head, *cur, *tail;
+} Queue;
+
 typedef struct {
 	unsigned ways    :4,
 	         visited :1;
@@ -24,6 +34,7 @@ typedef struct {
 	size_t w, h;
 	size_t unvisited_count;
 	Cell** cells;
+	Queue moves;
 } Maze;
 
 Maze* maze_generate(size_t w, size_t h);

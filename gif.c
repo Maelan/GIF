@@ -156,6 +156,10 @@ static void write_bitfield(FILE* out, ...)
 bool GIF_write(const GIF* gif, const char* filename)
 {
 	FILE* out;
+	size_t px_size;
+	Byte* lzw_buf;
+	size_t len;
+	Byte n;
 	
 	out = fopen(filename, "wb");
 	if(!out)
@@ -186,6 +190,7 @@ bool GIF_write(const GIF* gif, const char* filename)
 	/* Loop count (Netscape “Application Extension Block”). */
 	write_bytes(out, 1, 19, "!\xFF\x0BNETSCAPE2.0\x03\x01\xFF\xFF\x00");
 	
+	lzw_buf = malloc(2 * gif->w * gif->h);
 	/* Frames. */
 	for(GIFFrame* frame = gif->first;  frame;  frame = frame->next) {
 		/* “Graphic Control Extension”. */
@@ -219,22 +224,19 @@ bool GIF_write(const GIF* gif, const char* filename)
 			}
 		}
 		/* “Image Data”. */
-		Byte px_size = (frame->local_palette) ?
+		px_size = (frame->local_palette) ?
 		  frame->palette_size + 1
 		  : gif->palette_size + 1;
-		size_t encoded_size;
-		Byte* buf = malloc(2 * gif->w * gif->h);
-		encoded_size = lzw_encode(px_size, frame->w*frame->h, frame->pixels, buf);
-		Byte sz;
+		len = lzw_encode(px_size, frame->w*frame->h, frame->pixels, lzw_buf);
 		write_bytes(out, 1, 1, &px_size);
-		for(size_t i = 0;  i < encoded_size;  i += sz) {
-			sz = (encoded_size-i >= 255) ? 255 : encoded_size-i;
-			write_bytes(out, 1, 1, &sz);
-			write_bytes(out, 1, sz, buf+i);
+		for(size_t i = 0;  i < len;  i += n) {
+			n = (len-i >= 255) ? 255 : len-i;
+			write_bytes(out, 1, 1, &n);
+			write_bytes(out, 1, n, lzw_buf+i);
 		}
 		write_bytes(out, 1, 1, "\x00");
-		free(buf);
 	}
+	free(lzw_buf);
 	
 	/* “Trailer”. */
 	write_bytes(out, 1, 1, ";");
