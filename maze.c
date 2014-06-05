@@ -182,9 +182,15 @@ Maze* maze_generate(size_t w, size_t h)
 	//move_here(maze, h, 0, TOP);
 	
 	while(maze->unvisited_count) {
+		/* If all paths ended, restart from a cell not visited. */
 		if(queue_is_empty(&maze->moves))
 			search_unvisited(maze);
+		/* Get the next move. */
 		queue_pop(&i, &j, NULL, &maze->moves);
+		/* If that xas the last, search for another path to start, thus there
+		   always are two parallel paths being built at the same time. */
+		if(queue_is_empty(&maze->moves))
+			search_unvisited(maze);
 		mask = neighbourhood(maze, i, j, false, &count);
 		if(count) {
 			branching = 1;

@@ -12,6 +12,8 @@ typedef enum {
 	DISPOSE_PREV
 } GIFDisposalMethod;
 
+#define  LOOP_FOREVER  0xFFFF
+
 typedef struct {
 	Byte r, g, b;
 } GIFColor;
@@ -54,6 +56,8 @@ typedef struct GIF {
 	Byte2 px_ratio;
 	/* “Global Color Table“. */
 	GIFColor* palette;
+	/* Loop count (Netscape “Application Extension Block”). */
+	Byte2 loop_count;
 	/* Frames. */
 	GIFFrame *first, *last;
 } GIF;
@@ -77,6 +81,9 @@ GIFColor* GIFFrame_set_palette(GIFFrame* frame, Byte palette_size);
 void GIFFrame_set_transparence(GIFFrame* frame, GIFColorIndex color);
 
 void GIFFrame_delete(GIFFrame* frame);
+
+
+GIFColor GIFCOLOR(unsigned code);
 
 
 bool GIF_write(const GIF* gif, const char* filename);

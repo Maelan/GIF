@@ -46,11 +46,18 @@ int main(int ac, char** av)
 	GIFFrame* frame;
 	
 	gif = GIF_create(8*w+1, 8*h+1);
+	
 	palette = GIF_set_palette(gif, 1);
-	palette[0] = (GIFColor){0x22, 0x22, 0x77};
-	palette[1] = (GIFColor){0x22, 0x88, 0x22};
-	palette[2] = (GIFColor){0x99, 0x33, 0x33};
-	palette[3] = (GIFColor){0x44, 0xAA, 0xAA};
+	/*palette[0] = GIFCOLOR(0x222277);
+	palette[1] = GIFCOLOR(0x228822);
+	palette[2] = GIFCOLOR(0x993333);
+	palette[3] = GIFCOLOR(0x44AAAA);*/
+	palette[0] = GIFCOLOR(rand() % 0x1000000);
+	palette[1] = GIFCOLOR(rand() % 0x1000000);
+	palette[2] = GIFCOLOR(rand() % 0x1000000);
+	palette[3] = GIFCOLOR(rand() % 0x1000000);
+	
+	gif->loop_count = LOOP_FOREVER;
 	
 	size_t i, j;
 	Direction dir;
@@ -63,9 +70,10 @@ int main(int ac, char** av)
 		else
 			frame = GIFFrame_create(0, 0, 8, 7);
 		frame->disposal = DISPOSE_NOT;
-		frame->delay = 0;
-		for(size_t i = 0;  i < frame->w*frame->h;  i++)
-			frame->pixels[i] = 2;
+		frame->delay = 3;
+		GIFColorIndex color = rand() % 4;
+		for(size_t i = 0;  i < (unsigned)frame->w*frame->h;  i++)
+			frame->pixels[i] = /*2*/color;
 		frame->x = 8*j+1;
 		frame->y = 8*i+1;
 		if(dir == RIGHT)
@@ -75,6 +83,12 @@ int main(int ac, char** av)
 		
 		GIF_add_frame(gif, frame);
 	}
+	
+	/* Pause before looping (empty frame). */
+	frame = GIFFrame_create(0, 0, 1, 1);
+	frame->delay = 1500;
+	GIFFrame_set_transparence(frame, 0);
+	GIF_add_frame(gif, frame);
 	
 	if(!GIF_write(gif, "out.gif"))
 		perror("out.gif");

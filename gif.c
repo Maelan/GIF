@@ -112,10 +112,16 @@ void GIFFrame_set_transparence(GIFFrame* frame, GIFColorIndex color)
 }
 
 void GIFFrame_delete(GIFFrame* frame)
-{
+{ 
 	if(frame->palette)
 		free(frame->palette);
 	free(frame);
+}
+
+
+GIFColor GIFCOLOR(unsigned code)
+{
+	return (GIFColor){.r = (code>>16)&255, .g = (code>>8)&255, .b = code&255};
 }
 
 
@@ -188,7 +194,11 @@ bool GIF_write(const GIF* gif, const char* filename)
 	}
 	
 	/* Loop count (Netscape “Application Extension Block”). */
-	write_bytes(out, 1, 19, "!\xFF\x0BNETSCAPE2.0\x03\x01\xFF\xFF\x00");
+	if(gif->loop_count) {
+		write_bytes(out, 1, 16, "!\xFF\x0BNETSCAPE2.0\x03\x01");
+		write_bytes(out, 1, 2, &gif->loop_count);
+		write_bytes(out, 1, 1, "\x00");
+	}
 	
 	lzw_buf = malloc(2 * gif->w * gif->h);
 	/* Frames. */
