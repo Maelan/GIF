@@ -4,7 +4,7 @@
 #include <stdarg.h>
 
 
-GIF* GIF_create(Byte w, Byte h)
+GIF* GIF_create(Byte2 w, Byte2 h)
 {
 	GIF* gif;
 	
@@ -66,7 +66,7 @@ void GIF_delete(GIF* gif)
 }
 
 
-GIFFrame* GIFFrame_create(Byte x, Byte y, Byte w, Byte h)
+GIFFrame* GIFFrame_create(Byte2 x, Byte2 y, Byte2 w, Byte2 h)
 {
 	GIFFrame* frame;
 	

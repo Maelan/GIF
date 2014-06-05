@@ -63,7 +63,7 @@ typedef struct GIF {
 } GIF;
 
 
-GIF* GIF_create(Byte w, Byte h);
+GIF* GIF_create(Byte2 w, Byte2 h);
 
 GIFColor* GIF_set_palette(GIF* gif, Byte palette_size);
 
@@ -74,7 +74,7 @@ void GIF_add_frame(GIF* gif, GIFFrame* frame);
 void GIF_delete(GIF* gif);
 
 
-GIFFrame* GIFFrame_create(Byte x, Byte y, Byte w, Byte h);
+GIFFrame* GIFFrame_create(Byte2 x, Byte2 y, Byte2 w, Byte2 h);
 
 GIFColor* GIFFrame_set_palette(GIFFrame* frame, Byte palette_size);
 
